@@ -1,6 +1,5 @@
 package graphql.demo.CSDLNC.controllers;
 
-import graphql.demo.CSDLNC.dtos.AuthorInput;
 import graphql.demo.CSDLNC.dtos.BookInput;
 import graphql.demo.CSDLNC.entities.Author;
 import graphql.demo.CSDLNC.entities.Book;
@@ -13,30 +12,31 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class AuthorController {
-    private final IAuthorRepository authorRepository;
+public class BookController {
     private final IBookRepository bookRepository;
+    private final IAuthorRepository authorRepository;
 
     @Autowired
-    public AuthorController(IAuthorRepository authorRepository, IBookRepository bookRepository) {
+    public BookController(IBookRepository bookRepository, IAuthorRepository authorRepository) {
+        this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
-        this.bookRepository =  bookRepository;
     }
 
     @QueryMapping
-    Iterable<Author> authors() {
-        return authorRepository.findAll();
+    public Iterable<Book> books() {
+        return bookRepository.findAll();
     }
 
     @QueryMapping
-    Author authorById(@Argument Long id) {
-        return authorRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Author is not found"));
+    public Book bookByItsId(@Argument Long id) {
+        return bookRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Cant find book with the id provided"));
     }
 
     @MutationMapping
-    Author addAuthor(@Argument(name = "author") AuthorInput authorInput) {
-        Author author = new Author(authorInput.authorName());
-        authorRepository.save(author);
-        return author;
+    Book addBook(@Argument(name = "book") BookInput bookInput) {
+        Author author = authorRepository.findById(bookInput.authorId()).orElseThrow(() -> new IllegalArgumentException("author is not found"));
+        Book b = new Book(bookInput.bookName(), bookInput.publisher(), author);
+        bookRepository.save(b);
+        return b;
     }
 }
